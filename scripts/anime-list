@@ -1,0 +1,4 @@
+from anime_list.anime import get_animes
+
+for x in get_animes('/media/nekhd/Anime/'):
+    print(x)
