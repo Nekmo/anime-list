@@ -35,6 +35,14 @@ class Entry(object):
         elif self.is_symlink:
             return 'symlink'
 
+    def get_entries(self, filters=None):
+        filters = filters or {}
+        for file in os.scandir(self.path):
+            file = Entry(file)
+            if not file.filter(filters):
+                continue
+            yield file
+
     @property
     def msince(self):
         return time.time() - self.mtime
@@ -53,6 +61,15 @@ class Entry(object):
             if not self.analize_filter(key, value):
                 return False
         return True
+
+    def dirname(self):
+        return os.path.split(os.path.split(self.path)[0])[1]
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
 
     def __repr__(self):
         return '<{} "{}">'.format((self.type or 'entry').title(), self.name)
