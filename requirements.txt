@@ -1,0 +1,10 @@
+-e git+https://github.com/Nekmo/anime-news-network@59232e202e3fa843c21b9d6f428782dd715f3648#egg=anime_news_network
+beautifulsoup4==4.5.1
+dateutils==0.6.6
+-e git+git@github.com:Nekmo/file-cache.git@e6030d081572e0ec7a98b9124771394e7582545a#egg=file_cache
+lxml==3.6.4
+python-dateutil==2.5.3
+pytz==2016.6.1
+requests==2.11.1
+six==1.10.0
+spice-api==1.0.3
