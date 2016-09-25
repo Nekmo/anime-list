@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" href="/static/css/anime-list.css">
+    <link rel="stylesheet" href="/static/libs/perfect-scrollbar/css/perfect-scrollbar.css">
+{% endblock %}
+
+{% block content %}
+    <div id="anime">
+        <h1>{{ anime.about.title }}</h1>
+        <ul>
+        {% for episode in anime|sort %}
+            <li>{{ episode.name }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

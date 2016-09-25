@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Anime list{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="/static/css/anime-list.css">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/libs/perfect-scrollbar/css/perfect-scrollbar.css">
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <nav class="navbar navbar-default" id="menu">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Anime List</a>
+                </div>
+
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+                    <div class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Search" id="search">
+                        </div>
+                    </div>
+
+                    <form class="navbar-form navbar-right">
+                        <div class="btn-group" role="group" aria-label="...">
+                            {% for id, options in orders.items() %}
+                                <a type="button" class="btn btn-default"
+                                   href="?order_by={{ id }}&reverse={{ options.default_reversed }}">
+                                    <span class="mdi mdi-{{ options.mdi }}" aria-hidden="true"></span>
+                                </a>
+                            {% endfor %}
+                        </div>
+
+                        <div class="btn-group" role="group" aria-label="...">
+                            <a type="button" class="btn btn-default" href="?order_by={{ order_by_id }}&reverse=true">
+                                <span class="mdi mdi-sort-ascending" aria-hidden="true"></span>
+                            </a>
+                            <a type="button" class="btn btn-default" href="?order_by={{ order_by_id }}&reverse=false">
+                                <span class="mdi mdi-sort-descending" aria-hidden="true"></span>
+                            </a>
+                        </div>
+
+
+                    </form>
+
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
+        </nav>
+    </div>
+
+    <div id="results"></div>
+    <div id="animes">
+        {% for anime in animes %}
+            <div class="anime" data-id="{{ anime.about.id }}">
+                <div class="cover" style="background-image: url('{{ anime.about.image_url }}');"></div>
+                <div class="record">
+                    <a href="{{ url_for('anime', anime=anime.about.title|quote_url) }}">
+                        <h2 class="title">{{ anime.about.title }}</h2>
+                    </a>
+                    <p>Episodes: {{ anime.about.episodes|int or '?' }} ({{ anime.about.dates.0 }} - {{ anime.about.dates
+                    .1|default('?') }})</p>
+                    {% autoescape false %}
+                    <p class="synopsis">{{ anime.about.synopsis|clean_synopsis }}</p>
+                    <div class="bottom">
+                        <span class="centered">
+                            Score: <span class="score score-{{ anime.about.score|int }}">
+                            {{ anime.about.score|float or '-.--' }}</span>
+                            {% if anime.my_status %}You:
+                                <span class="you-score score-{{ anime.my_status.score }}">
+                                    {{ anime.my_status.score or '?' }}
+                                </span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endautoescape %}
+                </div>
+                {% if anime.my_status %}
+                <div class="my-status {{ anime.my_status.status }}"></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {{ animes|length }}
+
+
+{% endblock %}
+
+{% block js %}
+    <script src='static/libs/jquery/dist/jquery.min.js'></script>
+    <script src='static/libs/fuse.js/src/fuse.js'></script>
+    <script src='static/libs/perfect-scrollbar/js/perfect-scrollbar.jquery.min.js'></script>
+    <script src='static/js/anime-list.js'></script>
+{% endblock %}

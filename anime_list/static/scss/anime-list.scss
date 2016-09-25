@@ -1,0 +1,182 @@
+@import 'https://fonts.googleapis.com/css?family=Roboto';
+
+body {
+    font-family: 'Roboto', serif;
+}
+
+$anime-background: #ededed;
+$anime-width: 600px;
+$anime-height: 300px;
+$anime-cover-width: 200px;
+$anime-record-padding: 10px;
+
+#menu {
+    margin-top: 30px;
+}
+
+#search {
+    width: 400px;
+}
+
+#animes, #results {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.anime {
+    margin: 10px;
+    width: $anime-width;
+    height: $anime-height;
+    background: $anime-background;
+    white-space: nowrap;
+    position: relative;
+
+    a {
+        text-decoration: none;
+        color: rgba(0, 0, 0, 0.85);
+
+        h2 {
+            font-size: 180%;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    }
+
+    p {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .cover {
+        width: $anime-cover-width;
+        height: $anime-height;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        display: inline-block;
+    }
+
+    .record  {
+        display: inline-block;
+        vertical-align: top;
+        width: $anime-width - $anime-cover-width - ($anime-record-padding * 2);
+        height: $anime-height - ($anime-record-padding * 2);
+        white-space: normal;
+        padding: $anime-record-padding;
+    }
+
+    .synopsis {
+        height: 170px;
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+
+        &:hover {
+            overflow-y: auto;
+        }
+    }
+
+    .score, .you-score {
+
+        &.score-10 {
+            color: #008000;
+        }
+
+        &.score-9 {
+            color: #208e00;
+        }
+
+        &.score-8 {
+            color: #459c00;
+        }
+
+        &.score-7 {
+            color: #72aa00;
+        }
+
+        &.score-6 {
+            color: #a4b800;
+        }
+
+        &.score-5 {
+            color: #c7b000;
+        }
+
+        &.score-4 {
+            color: #d58e00;
+        }
+
+        &.score-3 {
+            color: #e36500;
+        }
+
+        &.score-2 {
+            color: #f13600;
+        }
+
+        &.score-1 {
+            color: #f00;
+        }
+
+        &.score-0 {
+            color: #5e5e5e;
+        }
+
+    }
+
+    .my-status {
+        // http://apps.eky.hk/css-triangle-generator/
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 0 50px 50px;
+
+        &.watching {
+            border-color: transparent transparent #f16c00 transparent;
+        }
+
+        &.completed {
+            border-color: transparent transparent #46ba00 transparent;
+        }
+
+        &.onhold {
+            border-color: transparent transparent #b72fe3 transparent;
+        }
+
+        &.dropped {
+            border-color: transparent transparent #b30000 transparent;
+        }
+
+        &.plantowatch {
+            border-color: transparent transparent #00aeff transparent;
+        }
+
+    }
+
+    .bottom {
+        background: $anime-background;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: $anime-width - $anime-cover-width - $anime-record-padding;
+        height: 40px;
+        display: inline-block;
+        font-size: 140%;
+
+        .centered {
+            vertical-align: middle;
+            display: inline-block;
+        }
+    }
+
+}

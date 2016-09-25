@@ -1,5 +1,14 @@
 #!/usr/bin/env python
-from anime_list.anime import get_animes
+from anime_list.web import app
+# from anime_list.anime import get_animes
+#
+# animes, faileds = get_animes('/media/nekhd/Anime')
+# for failed in faileds:
+#     print(failed)
 
-for x in get_animes('/home/nekmo/Src/fake_anime_files'):
-    print(x)
+
+if __name__ == '__main__':
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['DEBUG'] = True
+    app.debug = True
+    app.run()

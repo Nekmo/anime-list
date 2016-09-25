@@ -1,0 +1,173 @@
+@import "https://fonts.googleapis.com/css?family=Roboto";
+/* line 3, ../scss/anime-list.scss */
+body {
+  font-family: 'Roboto', serif;
+}
+
+/* line 13, ../scss/anime-list.scss */
+#menu {
+  margin-top: 30px;
+}
+
+/* line 17, ../scss/anime-list.scss */
+#search {
+  width: 400px;
+}
+
+/* line 21, ../scss/anime-list.scss */
+#animes, #results {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+/* line 28, ../scss/anime-list.scss */
+.anime {
+  margin: 10px;
+  width: 600px;
+  height: 300px;
+  background: #ededed;
+  white-space: nowrap;
+  position: relative;
+}
+/* line 36, ../scss/anime-list.scss */
+.anime a {
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.85);
+}
+/* line 40, ../scss/anime-list.scss */
+.anime a h2 {
+  font-size: 180%;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+/* line 52, ../scss/anime-list.scss */
+.anime p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+/* line 57, ../scss/anime-list.scss */
+.anime .cover {
+  width: 200px;
+  height: 300px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  display: inline-block;
+}
+/* line 66, ../scss/anime-list.scss */
+.anime .record {
+  display: inline-block;
+  vertical-align: top;
+  width: 380px;
+  height: 280px;
+  white-space: normal;
+  padding: 10px;
+}
+/* line 75, ../scss/anime-list.scss */
+.anime .synopsis {
+  height: 170px;
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+}
+/* line 81, ../scss/anime-list.scss */
+.anime .synopsis:hover {
+  overflow-y: auto;
+}
+/* line 88, ../scss/anime-list.scss */
+.anime .score.score-10, .anime .you-score.score-10 {
+  color: #008000;
+}
+/* line 92, ../scss/anime-list.scss */
+.anime .score.score-9, .anime .you-score.score-9 {
+  color: #208e00;
+}
+/* line 96, ../scss/anime-list.scss */
+.anime .score.score-8, .anime .you-score.score-8 {
+  color: #459c00;
+}
+/* line 100, ../scss/anime-list.scss */
+.anime .score.score-7, .anime .you-score.score-7 {
+  color: #72aa00;
+}
+/* line 104, ../scss/anime-list.scss */
+.anime .score.score-6, .anime .you-score.score-6 {
+  color: #a4b800;
+}
+/* line 108, ../scss/anime-list.scss */
+.anime .score.score-5, .anime .you-score.score-5 {
+  color: #c7b000;
+}
+/* line 112, ../scss/anime-list.scss */
+.anime .score.score-4, .anime .you-score.score-4 {
+  color: #d58e00;
+}
+/* line 116, ../scss/anime-list.scss */
+.anime .score.score-3, .anime .you-score.score-3 {
+  color: #e36500;
+}
+/* line 120, ../scss/anime-list.scss */
+.anime .score.score-2, .anime .you-score.score-2 {
+  color: #f13600;
+}
+/* line 124, ../scss/anime-list.scss */
+.anime .score.score-1, .anime .you-score.score-1 {
+  color: #f00;
+}
+/* line 128, ../scss/anime-list.scss */
+.anime .score.score-0, .anime .you-score.score-0 {
+  color: #5e5e5e;
+}
+/* line 134, ../scss/anime-list.scss */
+.anime .my-status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 50px 50px;
+}
+/* line 144, ../scss/anime-list.scss */
+.anime .my-status.watching {
+  border-color: transparent transparent #f16c00 transparent;
+}
+/* line 148, ../scss/anime-list.scss */
+.anime .my-status.completed {
+  border-color: transparent transparent #46ba00 transparent;
+}
+/* line 152, ../scss/anime-list.scss */
+.anime .my-status.onhold {
+  border-color: transparent transparent #b72fe3 transparent;
+}
+/* line 156, ../scss/anime-list.scss */
+.anime .my-status.dropped {
+  border-color: transparent transparent #b30000 transparent;
+}
+/* line 160, ../scss/anime-list.scss */
+.anime .my-status.plantowatch {
+  border-color: transparent transparent #00aeff transparent;
+}
+/* line 166, ../scss/anime-list.scss */
+.anime .bottom {
+  background: #ededed;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 390px;
+  height: 40px;
+  display: inline-block;
+  font-size: 140%;
+}
+/* line 176, ../scss/anime-list.scss */
+.anime .bottom .centered {
+  vertical-align: middle;
+  display: inline-block;
+}

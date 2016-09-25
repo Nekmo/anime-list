@@ -1,12 +1,14 @@
-import re
-from collections import defaultdict
-
 import logging
+from urllib.parse import quote
 
-from anime_list.files import get_files
-from spice_api import spice
 from file_cache.csv_key_value import KeyValueCache
 from file_cache.file import FileCache
+from fuzzywuzzy import process
+from spice_api import spice
+
+from anime_list.files import get_files, Entry
+from anime_list.mal import MalUserList
+from anime_list.tvshow import TVShowParser
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -27,92 +29,49 @@ logger.addHandler(ch)
 creds = spice.load_auth_from_file('mal_auth')
 words_cache = KeyValueCache('mal')
 file_cache = FileCache('mal')
+al_cache = FileCache('anime-list')
+my_mal_list = MalUserList(creds)
+
+data = my_mal_list.load()
+animes_faileds_cache = None
 
 
-class TVShowName(object):
-    def __init__(self, filename):
-        self._name = None
-        self._tvshow = None
-        self._seasson = None
-        self._chapter = None
-        self.filename = filename
-
-    def get_name(self):
-        name = self.filename
-        if '.' in name: name = '.'.join(name.split('.')[:-1])
-        # Elimnar aquello que se encuentre tras el CRC
-        name = re.sub('\[[0-9-A-Fa-f]{8}\].+', '', name)
-        # Eliminar lo que se encuentre entre corchetes
-        name = re.sub('\[[^\]]+\]', '', name)
-        # Eliminar lo que se encuentre entre paréntesis
-        name = re.sub('\(.+?\)', '', name)
-        # Eliminar palabras sobre calidad de vídeo
-        name = re.sub('\b(hd|dvd|bd|720p|1080p|tv|rip|dbrip)\b', '', name, flags=re.IGNORECASE)
-        # Eliminar aquello que sea una "v" seguido de un número (versiones)
-        name = re.sub('v[0-9]', '', name, flags=re.IGNORECASE)
-        # Sustituir puntos y barras bajas por espacios
-        name = re.sub('\.|_', ' ', name)
-        # Eliminar guiones separadores
-        name = name.replace(' - ', ' ')
-        # Eliminar las almohadillas
-        name = re.sub('#', ' ', name)
-        # Eliminar espacios múltiples, y sustiuir por 1
-        name = re.sub(' +', ' ', name)
-        # Eliminar espacio del comienzo del nombre
-        name = name.lstrip(' ')
-        # Eliminar espacio del final del nombre
-        name = name.rstrip(' ')
-        # Poner como título el nombre
-        name = name.title()
-        return name
-
-    def get_tvshow(self):
-        tvshow = re.sub('(\d+)', '', self.name)
-        tvshow = tvshow.replace('  ', ' ')
-        tvshow = re.sub('\b(op|ed|opening|ending)\b', '', tvshow, flags=re.IGNORECASE)
-        # Eliminar espacio del comienzo del nombre
-        if tvshow.startswith(' '): tvshow = tvshow[1:]
-        # Eliminar espacio del final del nombre
-        if tvshow.endswith(' '): tvshow = tvshow[:-1]
-        return tvshow
-
-    def get_seasson(self):
-        seasson = re.findall('(\d+)', self.name)
-        if len(seasson) > 1:
-            return seasson[0]
-        return False
-
-    def get_chapter(self):
-        chapter = re.findall('(\d+)', self.name)
-        chapter = chapter[-1]
-        return chapter
-
-    @property
-    def name(self):
-        if self._name is None: self._name = self.get_name()
-        return self._name
-
-    @property
-    def seasson(self):
-        if self._seasson is None: self._seasson = self.get_seasson()
-        return self._seasson
-
-    @property
-    def tvshow(self):
-        if self._tvshow is None: self._tvshow = self.get_tvshow()
-        return self._tvshow
-
-    @property
-    def chapter(self):
-        if self._chapter is None: self._chapter = self.get_chapter()
-        return self._chapter
+class Anime(Entry, TVShowParser):
+    def __init__(self, entry):
+        super(Anime, self).__init__(entry)
+        self.filename = self.name
 
 
 class TvshowFiles(list):
+    about = None
+
     def __init__(self, files=(), about=None):
         super(TvshowFiles, self).__init__()
         self.extend(files)
+        self.set_about(about)
+
+    def set_about(self, about):
+        if about is None:
+            return
         self.about = about
+        self.my_status = my_mal_list.get_by_id(self.about['id'])
+
+    def to_json(self):
+        return {'about': self.about, 'files': [file.path for file in self], 'my_status': self.my_status}
+
+
+class Tvshows(list):
+    def __init__(self, data):
+        super(Tvshows, self).__init__(data)
+
+    def get_by_name(self, name):
+        for tvshow in self:
+            if tvshow.about['title'] == name:
+                return tvshow
+
+
+def get_results_cache_name(path):
+    return quote(path.encode('utf-8'), safe='')
 
 
 def search(query):
@@ -130,39 +89,92 @@ def search(query):
     return results
 
 
+def get_best_result(results, name):
+    if not results:
+        return
+    titles = [result['title'] for result in results]
+    title_result = process.extractOne(name, titles)[0]
+    for result in results:
+        if result['title'] == title_result:
+            return result
+    return None
+
+
 def group_by_tvshow(files):
     tvshow_files_ids = {}  # MAL id: TvshowFiles(about=tvshow_data)
     tvshows = {}  # tvshow name (processed): TvshowFiles(about=tvshow_data)
+    failed_tvshow_names = []
     faileds = []
-    files_tvshows = [{'tvshow': TVShowName(x.name), 'file': x} for x in files]
-    for file_tvshow in files_tvshows:
+    for file in files:
         tvshow_data = None
-        # results = search(tvshow, 'anime') if not tvshow in faileds else None
-        results = None
-        for tvshow in [file_tvshow['tvshow'].tvshow, file_tvshow['file'].dirname()]:
-            # TODO: el tvshow NO debe ser el título que se usará al final.
-            if tvshow not in faileds and not tvshow in tvshows:
+        for tvshow in filter(lambda x: x, [file.tvshow, file.dirname()]):
+            if tvshow not in failed_tvshow_names and tvshow not in tvshows:
+                # No se ha realizado antes una búsqueda por este término de búsqueda en esta
+                # sesión (no se encuentra bien en búsquedas exitosas o búsquedas fallidas)
                 results = search(tvshow)
+                tvshow_data = get_best_result(results, tvshow) or tvshow_data
+                logger.info('Local anime {} -> {} ANN anime'.format(tvshow, tvshow_data['title'])) if results else None
             elif tvshow in tvshows:
+                # La búsqueda se encuentra en búsquedas exitosas, así que se utiliza el
+                # TvshowFiles ya existente.
                 tvshow_data = tvshows[tvshow]
+            if tvshow_data:
+                # Se ha conseguido un tvshow_data, bien porque la búsqueda ha sido exitosa, bien
+                # porque era ya una realizada.
                 break
-            if results:
-                tvshow_data = results[0]
-                logger.info('Local anime {} -> {} ANN anime'.format(tvshow, tvshow_data['title']))
-                break
-            elif not tvshow_data and not tvshow in faileds:
-                faileds.append(tvshow)
-                logger.warning('Not tvshow for {}'.format(tvshow))
+            if tvshow not in failed_tvshow_names:
+                # Llegados a este punto, es una búsqueda fallida, pero además es una que no está
+                # registrada en failed_tvshow_names
+                logger.warning('Not tvshow for {}. File: {}'.format(tvshow, file.name))
+                failed_tvshow_names.append(tvshow)
+            # En este punto, significa que no se ha conseguido un tvshow_data. Se intenta con el
+            # siguiente tvshow si lo hubiese.
         if tvshow not in tvshows and tvshow_data:
+            # Ha habido éxito y no existe un TvshowFiles previo.
             tvshows[tvshow] = tvshow_files_ids.get(tvshow_data['id'], TvshowFiles(about=tvshow_data))
+            tvshow_files_ids[tvshow_data['id']] = tvshows[tvshow]
         if tvshow_data:
-            tvshows[tvshow].append(tvshow)
-    return tvshow_files_ids.values()
+            # Ha habido éxito y existe un TvshowFiles previo. Se utiliza.
+            tvshows[tvshow].append(file)
+        else:
+            # No ha habido éxito. Se añade a la lista de huérfanos.
+            faileds.append(file)
+    return Tvshows(tvshow_files_ids.values()), faileds
 
 
-def get_animes(dir):
-    dirs = get_files(dir, {'type': 'dir'})
-    files = []
-    for directory in dirs:
-        files.extend(sorted(list(directory.get_entries({'type': 'file'}))))
-    return group_by_tvshow(files)
+def load_cache(directory):
+    cache = al_cache.load(get_results_cache_name(directory))
+    if not cache:
+        return
+    tvshows = [TvshowFiles([Entry(x) for x in tvshow['files']], tvshow['about']) for tvshow in cache['tvshows']]
+    faileds = [Entry(x) for x in cache['faileds']]
+    return Tvshows(tvshows), faileds
+
+
+def save_cache(directory, tvshows, faileds):
+    data = {
+        'tvshows': [tvshow.to_json() for tvshow in tvshows],
+        'faileds': [failed.path for failed in faileds],
+    }
+    al_cache.save(data, get_results_cache_name(directory))
+
+
+def get_animes(path, use_cache=True):
+    global animes_faileds_cache
+    cache = None
+    if use_cache and animes_faileds_cache is not None:
+        return animes_faileds_cache
+    if use_cache:
+        cache = load_cache(path)
+        animes_faileds_cache = cache
+    if not cache:
+        dirs = get_files(path, {'type': 'dir'})
+        files = []
+        for directory in dirs:
+            files.extend(sorted(list(directory.get_entries({'type': 'file', 'mime': 'video'}, Anime))))
+        tvshows, faileds = group_by_tvshow(files)
+        animes_faileds_cache = tvshows, faileds
+        save_cache(path, tvshows, faileds)
+        return tvshows, faileds
+    else:
+        return cache

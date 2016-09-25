@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" href="/static/css/anime-list.css">
+    <link rel="stylesheet" href="/static/libs/perfect-scrollbar/css/perfect-scrollbar.css">
+{% endblock %}
+
+{% block content %}
+    <div id="losts">
+        {% for lost, files in losts.items()|sort %}
+            <div title="{{ lost }}">{{ lost|filename }} ({{ files|length }})</div>
+        {% endfor %}
+    </div>
+    <div>
+        <span>Faileds by dir: {{ losts|length }}</span>
+        <span>Total files failed: {{ files|length }}</span>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src='static/libs/jquery/dist/jquery.min.js'></script>
+    <script src='static/libs/perfect-scrollbar/js/perfect-scrollbar.jquery.min.js'></script>
+    <script>
+        $('.synopsis').hover(function(){
+            $(this).perfectScrollbar();
+        });
+
+    </script>
+{% endblock %}
