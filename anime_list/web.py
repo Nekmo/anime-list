@@ -1,28 +1,25 @@
+import shlex
 from collections import OrderedDict
 from collections import defaultdict
 from datetime import datetime
 
 import re
 import os
-import six
+import subprocess
 from flask import Flask
 from flask import abort
 from flask import render_template
 from flask import request
 
-from anime_list.anime import get_animes
+from anime_list.anime import get_animes, get_faileds_by_dir
+from anime_list.config import Config
+from anime_list.tvshow import TVShowParser
 from anime_list.utils import parse_date, to_human_bool, from_human_bool
-
-if six.PY3:
-    from html import unescape
-    from urllib.parse import unquote
-    from urllib.parse import quote
-else:
-    from urllib import quote
-    from urllib import unquote
+from ._compat import quote, unescape, unquote
 
 app = Flask(__name__)
 app.debug = True
+config = Config(os.path.expanduser('~/.config/anime-list/config.yml'))
 
 USE_CACHE = from_human_bool(os.environ.get('USE_CACHE', 'true'))
 
@@ -35,7 +32,8 @@ orders = OrderedDict([
 ])
 
 
-FILES_DIRECTORY = '/media/nekhd/Anime'
+# FILES_DIRECTORY = '/media/nekhd/Anime'
+FILES_DIRECTORY = '/media/nekraid01/Anime,/media/nekraid02/Anime'
 
 
 @app.template_filter('clean_synopsis')
@@ -53,6 +51,11 @@ def filename_filter(s):
 @app.template_filter('quote_url')
 def quote_url_filter(s):
     return quote(s, safe='')
+
+
+@app.template_filter('tvshow')
+def tvshow_filter(s):
+    return TVShowParser(s.name)
 
 
 @app.route("/")
@@ -75,13 +78,22 @@ def anime(anime):
     anime = animes.get_by_name(anime)
     if anime is None:
         raise abort(404)
-    return render_template('anime.html', anime=anime)
+    anime.sort(key=lambda x: x.chapter or 0)
+    return render_template('anime.html', anime=anime, config=config)
+
+
+@app.route("/play", methods=['POST'])
+def play():
+    player_id = int(request.form['player_id'])
+    file = request.form['file']
+    player = config['players'][player_id]
+    cmd = shlex.split(player['cmd'])
+    print(subprocess.check_call(cmd + [file]))
+    return ''
 
 
 @app.route('/lost')
 def losts():
-    faileds_by_dir = defaultdict(list)
     animes, faileds = get_animes(FILES_DIRECTORY, USE_CACHE)
-    for failed in faileds:
-        faileds_by_dir[failed.directory()].append(failed)
+    faileds_by_dir = get_faileds_by_dir(faileds)
     return render_template('lost-list.html', losts=faileds_by_dir, files=faileds)

@@ -4,7 +4,13 @@
  * Licensed under MIT (https://github.com/twbs/../libs/bootstrap-sass/assets/stylesheets/bootstrap/blob/master/LICENSE)
  */
 
-$navbar-default-bg: #ededed;
+
+@import "variables";
+
+// Custom fonts
+@import 'https://fonts.googleapis.com/css?family=Roboto';
+@import "../libs/mdi/scss/materialdesignicons";
+
 
 // Core variables and mixins
 @import "../libs/bootstrap-sass/assets/stylesheets/bootstrap/variables";
@@ -57,8 +63,10 @@ $navbar-default-bg: #ededed;
 @import "../libs/bootstrap-sass/assets/stylesheets/bootstrap/utilities";
 @import "../libs/bootstrap-sass/assets/stylesheets/bootstrap/responsive-utilities";
 
-$mdi-font-path:        "../libs/mdi/fonts";
-@import "../libs/mdi/scss/materialdesignicons";
+
+body {
+    font-family: 'Roboto', serif;
+}
 
 .btn .mdi {
     font-size: 16px;

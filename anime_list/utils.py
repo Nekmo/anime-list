@@ -30,6 +30,13 @@ def safe_int(value, default=None):
         return value
 
 
+def int_or_float(s):
+    try:
+        return int(s)
+    except ValueError:
+        return float(s)
+
+
 def parse_date(date, force_safe=False):
     parts = date.split('-')
     if force_safe and len(parts) > 1 and (safe_int(parts[1], 0) <= 0 or safe_int(parts[1], 13) >= 13):

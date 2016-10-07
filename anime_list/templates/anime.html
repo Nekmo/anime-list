@@ -1,17 +1,86 @@
 {% extends "base.html" %}
 
 {% block styles %}
-    <link rel="stylesheet" href="/static/css/anime-list.css">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/anime.css">
     <link rel="stylesheet" href="/static/libs/perfect-scrollbar/css/perfect-scrollbar.css">
 {% endblock %}
 
 {% block content %}
-    <div id="anime">
-        <h1>{{ anime.about.title }}</h1>
-        <ul>
-        {% for episode in anime|sort %}
-            <li>{{ episode.name }}</li>
-        {% endfor %}
-        </ul>
+    <div class="container">
+        <div id="anime" class="row">
+            <div id="left-block" class="col-fixed-225">
+                <img src="{{ anime.about.image_url }}" id="cover" />
+                <div id="score" class="score-{{ anime.about.score|int }}">
+                    {% if anime.about.score|float %}
+                        <span>{{ '%0.2f'| format(anime.about.score|float) }}</span>
+                    {% else %}
+                        <span>-.--</span>
+                    {% endif %}
+                </div>
+                {% if anime.my_status %}
+                <div id="my-score" class="score-{{ anime.my_status.score|int }}">
+                    {% if anime.my_status.score|float %}
+                        <span>{{ '%0.2f'| format(anime.my_status.score|float) }}</span>
+                    {% else %}
+                        <span>Vote</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div id="my-score" class="unwatched">
+                    <span>Watch</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="synopsis" class="col-md-12 col-offset-225">
+                <h1 id="title">{{ anime.about.title }}</h1>
+                {% autoescape false %}
+                <p>{{ anime.about.synopsis|clean_synopsis }}</p>
+                {% endautoescape %}
+                <ul class="list-unstyled">
+                {% for episode in anime %}
+                    <li>
+                        <div class="btn-group" role="group" aria-label="...">
+                            {% if episode.extra %}
+                            <button type="button" class="btn btn-default">
+                                {{ episode.extra }}
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-default">
+                                Chapter
+                                {{ ('%%0.%ii' % anime|length|string|length) | format(episode.chapter or 0) }}
+                            </button>
+                            {% endif %}
+
+                            <div class="btn-group">
+                              <button class="btn btn-primary mdi-btn dropdown-toggle" type="button"
+                                      data-toggle="dropdown"
+                                      aria-haspopup="true" aria-expanded="false">
+                                  <span class="mdi mdi-play" aria-hidden="true"></span>
+                              </button>
+                              <ul class="dropdown-menu" data-file="{{ episode.path }}"
+                                  data-anime="{{ anime.about.title }}">
+                                  {% for player in config.players %}
+                                  <li>
+                                      <a data-player_id="{{ loop.index0 }}" class="player">{{ player.name }}</a>
+                                  </li>
+                                  {% endfor %}
+                              </ul>
+                            </div>
+                        </div>
+                        {{ episode.name }}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src='/static/libs/jquery/dist/jquery.min.js'></script>
+    <script src='/static/libs/bootstrap-sass/assets/javascripts/bootstrap.js'></script>
+    <script src='/static/js/anime.js'></script>
 {% endblock %}

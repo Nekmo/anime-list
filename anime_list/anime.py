@@ -1,6 +1,8 @@
 import logging
+from collections import defaultdict
 from urllib.parse import quote
 
+import os
 from file_cache.csv_key_value import KeyValueCache
 from file_cache.file import FileCache
 from fuzzywuzzy import process
@@ -89,6 +91,13 @@ def search(query):
     return results
 
 
+def get_faileds_by_dir(faileds):
+    faileds_by_dir = defaultdict(list)
+    for failed in faileds:
+        faileds_by_dir[failed.directory()].append(failed)
+    return faileds_by_dir
+
+
 def get_best_result(results, name):
     if not results:
         return
@@ -101,13 +110,19 @@ def get_best_result(results, name):
 
 
 def group_by_tvshow(files):
+    from anime_list.content_file import ContentFile
     tvshow_files_ids = {}  # MAL id: TvshowFiles(about=tvshow_data)
     tvshows = {}  # tvshow name (processed): TvshowFiles(about=tvshow_data)
     failed_tvshow_names = []
     faileds = []
+    content_files = {}
     for file in files:
         tvshow_data = None
-        for tvshow in filter(lambda x: x, [file.tvshow, file.dirname()]):
+        content_file_path = os.path.join(file.directory(), '.content.yml')
+        content_file = content_files.get(content_file_path, ContentFile(content_file_path, read_enabled=False))
+        content_files[content_file_path] = content_file
+        for tvshow in filter(lambda x: x, [content_file.search('animes', file.name), file.tvshow,
+                                           file.dirname(), TVShowParser(file.dirname()).tvshow]):
             if tvshow not in failed_tvshow_names and tvshow not in tvshows:
                 # No se ha realizado antes una búsqueda por este término de búsqueda en esta
                 # sesión (no se encuentra bien en búsquedas exitosas o búsquedas fallidas)
@@ -146,7 +161,7 @@ def load_cache(directory):
     cache = al_cache.load(get_results_cache_name(directory))
     if not cache:
         return
-    tvshows = [TvshowFiles([Entry(x) for x in tvshow['files']], tvshow['about']) for tvshow in cache['tvshows']]
+    tvshows = [TvshowFiles([Anime(x) for x in tvshow['files']], tvshow['about']) for tvshow in cache['tvshows']]
     faileds = [Entry(x) for x in cache['faileds']]
     return Tvshows(tvshows), faileds
 
@@ -159,6 +174,12 @@ def save_cache(directory, tvshows, faileds):
     al_cache.save(data, get_results_cache_name(directory))
 
 
+def get_dirs(paths):
+    for path in paths.split(','):
+        for file in get_files(path, {'type': 'dir'}):
+            yield file
+
+
 def get_animes(path, use_cache=True):
     global animes_faileds_cache
     cache = None
@@ -168,7 +189,7 @@ def get_animes(path, use_cache=True):
         cache = load_cache(path)
         animes_faileds_cache = cache
     if not cache:
-        dirs = get_files(path, {'type': 'dir'})
+        dirs = get_dirs(path)
         files = []
         for directory in dirs:
             files.extend(sorted(list(directory.get_entries({'type': 'file', 'mime': 'video'}, Anime))))

@@ -1,11 +1,14 @@
 import re
 
+from anime_list.utils import int_or_float
+
 
 class TVShowParser(object):
     _name = None
     _tvshow = None
     _seasson = None
     _chapter = None
+    _extra = None
 
     def __init__(self, filename):
         self.filename = filename
@@ -20,7 +23,7 @@ class TVShowParser(object):
         # Eliminar lo que se encuentre entre paréntesis
         name = re.sub('\(.+?\)', '', name)
         # Eliminar palabras sobre calidad de vídeo
-        name = re.sub('\b(hd|dvd|bd|720p|1080p|tv|rip|dbrip)\b', '', name, flags=re.IGNORECASE)
+        name = re.sub(r'[\b ](hdtv|hd|dvd|bd|720p|1080p|tv|rip|dbrip|dvdrip)(?:\Z|\b)', '', name, flags=re.IGNORECASE)
         # Eliminar aquello que sea una "v" seguido de un número (versiones)
         name = re.sub('v[0-9]', '', name, flags=re.IGNORECASE)
         # Sustituir puntos y barras bajas por espacios
@@ -42,7 +45,7 @@ class TVShowParser(object):
     def get_tvshow(self):
         tvshow = re.sub('(\d+)', '', self.cleaned_name)
         tvshow = tvshow.replace('  ', ' ')
-        tvshow = re.sub('\b(op|ed|opening|ending)\b', '', tvshow, flags=re.IGNORECASE)
+        tvshow = re.sub(r'[\b ](op|ed|opening|ending)(?:\Z|\b)', '', tvshow, flags=re.IGNORECASE)
         # Eliminamos lo que se encuentra tras un " - ".
         tvshow = tvshow.split(' - ', 1)[0]
         # Eliminar espacio del comienzo del nombre
@@ -59,8 +62,12 @@ class TVShowParser(object):
 
     def get_chapter(self):
         chapter = re.findall('(\d+)', self.cleaned_name)
-        chapter = chapter[-1]
+        chapter = int_or_float(chapter[-1]) if len(chapter) else None
         return chapter
+
+    def get_extra(self):
+        match = re.findall(r'[\b ](op|ed|opening|ending)(?:\Z|\b)', self.cleaned_name, flags=re.IGNORECASE)
+        return match[0] if match else ''
 
     @property
     def cleaned_name(self):
@@ -81,3 +88,8 @@ class TVShowParser(object):
     def chapter(self):
         if self._chapter is None: self._chapter = self.get_chapter()
         return self._chapter
+
+    @property
+    def extra(self):
+        if self._extra is None: self._extra = self.get_extra()
+        return self._extra

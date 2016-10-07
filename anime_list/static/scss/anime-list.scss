@@ -1,14 +1,4 @@
-@import 'https://fonts.googleapis.com/css?family=Roboto';
-
-body {
-    font-family: 'Roboto', serif;
-}
-
-$anime-background: #ededed;
-$anime-width: 600px;
-$anime-height: 300px;
-$anime-cover-width: 200px;
-$anime-record-padding: 10px;
+@import "variables";
 
 #menu {
     margin-top: 30px;
@@ -86,47 +76,47 @@ $anime-record-padding: 10px;
     .score, .you-score {
 
         &.score-10 {
-            color: #008000;
+            color: $score-10;
         }
 
         &.score-9 {
-            color: #208e00;
+            color: $score-9;
         }
 
         &.score-8 {
-            color: #459c00;
+            color: $score-8;
         }
 
         &.score-7 {
-            color: #72aa00;
+            color: $score-7;
         }
 
         &.score-6 {
-            color: #a4b800;
+            color: $score-6;
         }
 
         &.score-5 {
-            color: #c7b000;
+            color: $score-5;
         }
 
         &.score-4 {
-            color: #d58e00;
+            color: $score-4;
         }
 
         &.score-3 {
-            color: #e36500;
+            color: $score-3;
         }
 
         &.score-2 {
-            color: #f13600;
+            color: $score-2;
         }
 
         &.score-1 {
-            color: #f00;
+            color: $score-1;
         }
 
         &.score-0 {
-            color: #5e5e5e;
+            color: $score-0;
         }
 
     }

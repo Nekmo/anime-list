@@ -1,0 +1,116 @@
+@import "variables";
+
+$left-block: 225px;
+
+.container .row {
+    .col-fixed-225 {
+        width:225px;
+        position: absolute;
+        height:100%;
+    }
+
+    .col-offset-225 {
+        padding-left: 250px;
+    }
+}
+
+.btn-group .btn.mdi-btn {
+    padding: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+
+    .mdi {
+        font-size: 22px;
+    }
+}
+
+#anime {
+    //display: flex;
+    //flex-wrap: wrap;
+
+    li {
+        padding-top: 5px;
+        padding-bottom: 5px;
+
+        > .btn-group {
+            margin-right: 10px;
+        }
+    }
+
+    #left-block {
+        width: $left-block;
+        z-index: 99;
+    }
+
+    #cover {
+        vertical-align: top;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+
+    #score {
+        margin-right: 6px;
+    }
+
+    #score, #my-score {
+        width: ($left-block / 2) - 5px;
+        height: 45px;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        font-size: 30px;
+        display: inline-block;
+
+        span {
+            vertical-align: middle;
+        }
+
+        &.score-10 {
+            background-color: $score-10;
+        }
+
+        &.score-9 {
+            background-color: $score-9;
+        }
+
+        &.score-8 {
+            background-color: $score-8;
+        }
+
+        &.score-7 {
+            background-color: $score-7;
+        }
+
+        &.score-6 {
+            background-color: $score-6;
+        }
+
+        &.score-5 {
+            background-color: $score-5;
+        }
+
+        &.score-4 {
+            background-color: $score-4;
+        }
+
+        &.score-3 {
+            background-color: $score-3;
+        }
+
+        &.score-2 {
+            background-color: $score-2;
+        }
+
+        &.score-1 {
+            background-color: $score-1;
+        }
+
+        &.score-0 {
+            background-color: $score-0;
+        }
+
+        &.unwatched {
+            background-color: #3faaee;
+        }
+    }
+}

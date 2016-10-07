@@ -9,6 +9,9 @@ import six
 
 mimetypes.init()
 
+# Extra mimetypes
+mimetypes.add_type('video/x-ogm', '.ogm')
+
 
 class FakeDirEntry(object):
     _stat = None
